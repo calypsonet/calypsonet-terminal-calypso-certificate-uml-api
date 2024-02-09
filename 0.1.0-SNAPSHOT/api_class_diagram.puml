@@ -1,0 +1,145 @@
+@startuml
+title
+    Terminal Calypso Certificate API 0.1.+ (2024-01-26)
+end title
+
+' == THEME ==
+
+'Couleurs issues de : https://htmlcolorcodes.com/fr/tableau-de-couleur/tableau-de-couleur-design-plat/
+!define C_GREY1 F8F9F9
+!define C_GREY2 F2F3F4
+!define C_GREY3 E5E7E9
+!define C_GREY4 D7DBDD
+!define C_GREY5 CACFD2
+!define C_GREY6 BDC3C7
+!define C_LINK 3498DB
+!define C_USE 27AE60
+
+' -- Styles that don't work with new version of plantuml --
+skinparam stereotypeABorderColor #A9DCDF
+skinparam stereotypeIBorderColor #B4A7E5
+skinparam stereotypeCBorderColor #ADD1B2
+skinparam stereotypeEBorderColor #EB93DF
+' -- END --
+
+skinparam ClassBorderThickness 2
+skinparam ArrowThickness 2
+
+' Yellow
+skinparam ClassBackgroundColor #FEFECE
+skinparam ClassBorderColor #D4AC0D
+' Red
+skinparam ClassBackgroundColor<<red>> #FDEDEC
+skinparam ClassBorderColor<<red>> #E74C3C
+hide <<red>> stereotype
+' Purple
+skinparam ClassBackgroundColor<<purple>> #F4ECF7
+skinparam ClassBorderColor<<purple>> #8E44AD
+hide <<purple>> stereotype
+' blue
+skinparam ClassBackgroundColor<<blue>> #EBF5FB
+skinparam ClassBorderColor<<blue>> #3498DB
+hide <<blue>> stereotype
+' Green
+skinparam ClassBackgroundColor<<green>> #E9F7EF
+skinparam ClassBorderColor<<green>> #27AE60
+hide <<green>> stereotype
+' Grey
+skinparam ClassBackgroundColor<<grey>> #EAECEE
+skinparam ClassBorderColor<<grey>> #2C3E50
+hide <<grey>> stereotype
+
+' == CONTENT ==
+
+legend top
+    __Colors legend__ :
+    * __External API references__ :
+    ** <back:yellow>java.security</back>
+end legend
+
+package "calypso.certificate" as api {
+    +class "**final** CalypsoCertificateApiProperties" as ApiProperties <<green>> {
+        +{static} **final** String VERSION
+    }
+    +interface CalypsoCertificateApiFactory <<blue>> {
+        +<T extends CaCertificateSettings> T createCaCertificateSettings (Class<T> classOfT)
+        +<T extends CardCertificateSettings> T createCardCertificateSettings (Class<T> classOfT)
+
+        +CaCertificateBuilder createCaCertificateBuilder (CaCertificateSettings)
+        +CardCertificateBuilder createCardCertificateBuilder (CardCertificateSettings)
+    }
+    package "ca" as ca {
+        +interface CaCertificateSettings {
+        }
+        +interface CaCertificateSettingsV1 <<blue>> extends CaCertificateSettings {
+            +CaCertificateSettingsV1 useExternalSigner (CaCertificateSignerSpi caCertificateSigner)
+            +CaCertificateSettingsV1 useInternalSigner (<back:yellow>PrivateKey</back> issuerPrivateKey, byte[] issuerPublicKeyReference)
+
+            +CaCertificateSettingsV1 setCaPublicKey (<back:yellow>PublicKey</back> caPublicKey, byte[] caPublicKeyReference)
+            +CaCertificateSettingsV1 setStartDate (int year, int month, int day)
+            +CaCertificateSettingsV1 setEndDate (int year, int month, int day)
+            +CaCertificateSettingsV1 setAid (byte[] aid)
+            +CaCertificateSettingsV1 setCaRights (byte caRights) ???
+            +CaCertificateSettingsV1 setCaScope (byte caScope) ???
+            +CaCertificateSettingsV1 setCaOperatingMode (byte caOperatingMode) ???
+        }
+        +interface CaCertificateBuilder <<blue>> {
+            +byte[] createCertificate ()
+        }
+        package "spi" as caSpi {
+            +interface CaCertificateSignerSpi <<red>> {
+                +byte[] getIssuerPublicKeyReference ()
+                +byte[] generateSignedCertificate (byte[] allData) ???
+                +byte[] generateSignedCertificate (byte[] data, byte[] recoverableData) ???
+            }
+        }
+    }
+    package "card" as card {
+        +interface CardCertificateSettings {
+        }
+        +interface CardCertificateSettingsV1 <<blue>> extends CardCertificateSettings {
+            +CardCertificateSettingsV1 useExternalSigner (CardCertificateSignerSpi cardCertificateSigner)
+            +CardCertificateSettingsV1 useInternalSigner (<back:yellow>PrivateKey</back> issuerPrivateKey, byte[] issuerPublicKeyReference)
+
+            +CardCertificateSettingsV1 setCardPublicKey (byte[] cardPublicKey)
+            +CardCertificateSettingsV1 setStartDate (int year, int month, int day)
+            +CardCertificateSettingsV1 setEndDate (int year, int month, int day)
+            +CardCertificateSettingsV1 setAid (byte[] aid)
+            +CardCertificateSettingsV1 setCardSerialNumber (byte[] serialNumber)
+            +CardCertificateSettingsV1 setCardStartupInfo (byte[] startupInfo)
+            +CardCertificateSettingsV1 setIndex (int index)
+        }
+        +interface CardCertificateBuilder <<blue>> {
+            +byte[] createCertificate ()
+            +byte[] getCardPublicKeyData ()
+        }
+        package "spi" as cardSpi {
+            +interface CardCertificateSignerSpi <<red>> {
+                +byte[] getIssuerPublicKeyReference ()
+                +byte[] generateSignedCertificate (byte[] allData) ???
+                +byte[] generateSignedCertificate (byte[] data, byte[] recoverableData) ???
+            }
+        }
+    }
+}
+
+' Associations
+
+CardCertificateSettingsV1 ..> CardCertificateSignerSpi #C_USE : use >
+
+CaCertificateSettingsV1 ..> CaCertificateSignerSpi #C_USE : use >
+
+' == LAYOUT ==
+
+CalypsoCertificateApiFactory -[hidden]- CaCertificateBuilder
+CalypsoCertificateApiFactory -[hidden]- CardCertificateBuilder
+
+' == STYLE ==
+
+package api #C_GREY1 {}
+package api.ca #C_GREY2 {}
+package api.ca.caSpi #C_GREY3 {}
+package api.card #C_GREY2 {}
+package api.card.cardSpi #C_GREY3 {}
+
+@enduml
