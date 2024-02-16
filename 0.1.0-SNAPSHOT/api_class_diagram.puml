@@ -72,10 +72,9 @@ package "calypso.certificate" as api {
             +CalypsoCaCertificateV1Builder withCaPublicKey (<back:yellow>RSAPublicKey</back> caPublicKey, byte[] caPublicKeyReference)
             +CalypsoCaCertificateV1Builder withStartDate (int year, int month, int day)
             +CalypsoCaCertificateV1Builder withEndDate (int year, int month, int day)
-            +CalypsoCaCertificateV1Builder withAid (byte[] aid)
+            +CalypsoCaCertificateV1Builder withAid (byte[] aid, boolean isTruncated)
             +CalypsoCaCertificateV1Builder withCaRights (byte caRights)
             +CalypsoCaCertificateV1Builder withCaScope (byte caScope)
-            +CalypsoCaCertificateV1Builder withCaOperatingMode (byte caOperatingMode)
 
             +CalypsoCaCertificateV1 build (<back:yellow>RSAPrivateKey</back> issuerPrivateKey, byte[] issuerPublicKeyReference)
             +CalypsoCaCertificateV1 build (CalypsoCaCertificateSignerSpi caCertificateSigner)
