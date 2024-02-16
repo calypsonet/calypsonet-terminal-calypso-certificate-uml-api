@@ -121,17 +121,17 @@ package "calypso.certificate" as api {
 
 ' Associations
 
-CalypsoCertificateApiFactory ..> CalypsoCaCertificateV1Builder #C_LINK : provide >
-CalypsoCertificateApiFactory ..> CalypsoCardCertificateV1Builder #C_LINK : provide >
+CalypsoCertificateApiFactory ..> CalypsoCaCertificateV1Builder #C_LINK : create >
+CalypsoCertificateApiFactory ..> CalypsoCardCertificateV1Builder #C_LINK : create >
 
 CalypsoCaCertificateV1Builder ..> CalypsoCaCertificateSignerSpi #C_USE : use >
-CalypsoCaCertificateV1Builder ..> CalypsoCaCertificateV1 #C_LINK : provide >
+CalypsoCaCertificateV1Builder ..> CalypsoCaCertificateV1 #C_LINK : create >
+CalypsoCaCertificateV1Builder ...> CertificateSigningException #C_THROW : throw >
 
 CalypsoCardCertificateV1Builder ..> CalypsoCardCertificateSignerSpi #C_USE : use >
-CalypsoCardCertificateV1Builder ..> CalypsoCardCertificateV1 #C_LINK : provide >
-
-CalypsoCaCertificateV1Builder ...> CertificateSigningException #C_THROW : throw >
+CalypsoCardCertificateV1Builder ..> CalypsoCardCertificateV1 #C_LINK : create >
 CalypsoCardCertificateV1Builder ...> CertificateSigningException #C_THROW : throw >
+
 
 ' == LAYOUT ==
 
