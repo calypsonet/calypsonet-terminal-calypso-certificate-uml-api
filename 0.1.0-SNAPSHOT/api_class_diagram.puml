@@ -1,6 +1,6 @@
 @startuml
 title
-    Terminal Calypso Certificate API 0.1.+ (2024-02-13)
+    Terminal Calypso Certificate API 0.1.+ (2024-02-16)
 end title
 
 ' == THEME ==
@@ -14,6 +14,7 @@ end title
 !define C_GREY6 BDC3C7
 !define C_LINK 3498DB
 !define C_USE 27AE60
+!define C_THROW 2C3E50
 
 ' -- Styles that don't work with new version of plantuml --
 skinparam stereotypeABorderColor #A9DCDF
@@ -69,15 +70,15 @@ package "calypso.certificate" as api {
     package "ca" as ca {
         +interface CalypsoCaCertificateV1Builder <<blue>> {
             +CalypsoCaCertificateV1Builder useExternalSigner (CalypsoCaCertificateSignerSpi caCertificateSigner)
-            +CalypsoCaCertificateV1Builder useInternalSigner (<back:yellow>PrivateKey</back> issuerPrivateKey, byte[] issuerPublicKeyReference)
+            +CalypsoCaCertificateV1Builder useInternalSigner (<back:yellow>RSAPrivateKey</back> issuerPrivateKey, byte[] issuerPublicKeyReference)
 
-            +CalypsoCaCertificateV1Builder setCaPublicKey (<back:yellow>PublicKey</back> caPublicKey, byte[] caPublicKeyReference)
+            +CalypsoCaCertificateV1Builder setCaPublicKey (<back:yellow>RSAPublicKey</back> caPublicKey, byte[] caPublicKeyReference)
             +CalypsoCaCertificateV1Builder setStartDate (int year, int month, int day)
             +CalypsoCaCertificateV1Builder setEndDate (int year, int month, int day)
             +CalypsoCaCertificateV1Builder setAid (byte[] aid)
-            +CalypsoCaCertificateV1Builder setCaRights (byte caRights) ???
-            +CalypsoCaCertificateV1Builder setCaScope (byte caScope) ???
-            +CalypsoCaCertificateV1Builder setCaOperatingMode (byte caOperatingMode) ???
+            +CalypsoCaCertificateV1Builder setCaRights (byte caRights)
+            +CalypsoCaCertificateV1Builder setCaScope (byte caScope)
+            +CalypsoCaCertificateV1Builder setCaOperatingMode (byte caOperatingMode)
 
             +CalypsoCaCertificateV1 build ()
         }
@@ -87,15 +88,14 @@ package "calypso.certificate" as api {
         package "spi" as caSpi {
             +interface CalypsoCaCertificateSignerSpi <<red>> {
                 +byte[] getIssuerPublicKeyReference ()
-                +byte[] generateSignedCertificate (byte[] allData) ???
-                +byte[] generateSignedCertificate (byte[] data, byte[] recoverableData) ???
+                +byte[] generateSignedCertificate (byte[] data, byte[] recoverableData)
             }
         }
     }
     package "card" as card {
         +interface CalypsoCardCertificateV1Builder <<blue>> {
             +CalypsoCardCertificateV1Builder useExternalSigner (CalypsoCardCertificateSignerSpi cardCertificateSigner)
-            +CalypsoCardCertificateV1Builder useInternalSigner (<back:yellow>PrivateKey</back> issuerPrivateKey, byte[] issuerPublicKeyReference)
+            +CalypsoCardCertificateV1Builder useInternalSigner (<back:yellow>RSAPrivateKey</back> issuerPrivateKey, byte[] issuerPublicKeyReference)
 
             +CalypsoCardCertificateV1Builder setCardPublicKey (byte[] cardPublicKey)
             +CalypsoCardCertificateV1Builder setStartDate (int year, int month, int day)
@@ -113,10 +113,13 @@ package "calypso.certificate" as api {
         package "spi" as cardSpi {
             +interface CalypsoCardCertificateSignerSpi <<red>> {
                 +byte[] getIssuerPublicKeyReference ()
-                +byte[] generateSignedCertificate (byte[] allData) ???
-                +byte[] generateSignedCertificate (byte[] data, byte[] recoverableData) ???
+                +byte[] generateSignedCertificate (byte[] data, byte[] recoverableData)
             }
         }
+    }
+    +class "<<Exception>>\n**final** CertificateSigningException" as CertificateSigningException <<green>> {
+        +CertificateSigningException (String message)
+        +CertificateSigningException (String message, Throwable cause)
     }
 }
 
@@ -130,6 +133,9 @@ CalypsoCaCertificateV1Builder ..> CalypsoCaCertificateV1 #C_LINK : provide >
 
 CalypsoCardCertificateV1Builder ..> CalypsoCardCertificateSignerSpi #C_USE : use >
 CalypsoCardCertificateV1Builder ..> CalypsoCardCertificateV1 #C_LINK : provide >
+
+CalypsoCaCertificateSignerSpi ..> CertificateSigningException #C_THROW : throw >
+CalypsoCardCertificateSignerSpi ..> CertificateSigningException #C_THROW : throw >
 
 ' == LAYOUT ==
 
