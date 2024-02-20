@@ -1,6 +1,6 @@
 @startuml
 title
-    Terminal Calypso Certificate API 0.1.+ (2024-02-16)
+    Terminal Calypso Certificate API 0.1.+ (2024-02-20)
 end title
 
 ' == THEME ==
@@ -64,29 +64,60 @@ package "calypso.certificate" as api {
         +{static} **final** String VERSION
     }
     +interface CalypsoCertificateApiFactory <<blue>> {
-        +CalypsoCaCertificateV1Builder createCalypsoCaCertificateV1Builder ()
-        +CalypsoCardCertificateV1Builder  createCalypsoCardCertificateV1Builder ()
+        +CalypsoCertificateStore getCalypsoCertificateStore ()
+
+        +CalypsoCaCertificateV1Builder createCalypsoCaCertificateV1Builder (byte[] issuerPublicKeyReference)
+        +CalypsoCaCertificateV1Builder createCalypsoCaCertificateV1Builder (byte[] issuerPublicKeyReference, CalypsoCertificateSignerSpi caCertificateSigner)
+
+        +CalypsoCardCertificateV1Builder  createCalypsoCardCertificateV1Builder (byte[] issuerPublicKeyReference)
+        +CalypsoCardCertificateV1Builder  createCalypsoCardCertificateV1Builder (byte[] issuerPublicKeyReference, CalypsoCertificateSignerSpi cardCertificateSigner)
+    }
+    +interface CalypsoCertificateStore <<blue>> {
+        +CalypsoCertificateStore addPcaPublicKey (byte[] publicKeyReference, <back:yellow>RSAPublicKey</back> publicKey)
+        +CalypsoCertificateStore addPcaKeyPair (byte[] publicKeyReference, <back:yellow>RSAPublicKey</back> publicKey, <back:yellow>RSAPrivateKey</back> privateKey)
+
+        +CalypsoCertificateStore addCalypsoCaCertificate (CalypsoCaCertificate caCertificate)
+        +CalypsoCertificateStore addCalypsoCaCertificate (CalypsoCaCertificate caCertificate, <back:yellow>RSAPrivateKey</back> caPrivateKey)
+    }
+    package "spi" as spi {
+        +interface CalypsoCertificateSignerSpi <<red>> {
+            +byte[] generateSignedCertificate (byte[] data, byte[] recoverableData)
+        }
     }
     package "ca" as ca {
         +interface CalypsoCaCertificateV1Builder <<blue>> {
             +CalypsoCaCertificateV1Builder withCaPublicKey (<back:yellow>RSAPublicKey</back> caPublicKey, byte[] caPublicKeyReference)
             +CalypsoCaCertificateV1Builder withStartDate (int year, int month, int day)
             +CalypsoCaCertificateV1Builder withEndDate (int year, int month, int day)
-            +CalypsoCaCertificateV1Builder withAid (byte[] aid, boolean isTruncated)
+            +CalypsoCaCertificateV1Builder withTargetAid (byte[] aid, boolean isTruncated)
             +CalypsoCaCertificateV1Builder withCaRights (byte caRights)
             +CalypsoCaCertificateV1Builder withCaScope (byte caScope)
 
-            +CalypsoCaCertificateV1 build (<back:yellow>RSAPrivateKey</back> issuerPrivateKey, byte[] issuerPublicKeyReference)
-            +CalypsoCaCertificateV1 build (CalypsoCaCertificateSignerSpi caCertificateSigner)
+            +CalypsoCaCertificateV1 build ()
         }
-        +interface "<<<back:pink>CaCertificate</back>>>\nCalypsoCaCertificateV1" as CalypsoCaCertificateV1 {
+        +interface "<<<back:pink>CaCertificate</back>>>\nCalypsoCaCertificate" as CalypsoCaCertificate {
             +byte[] getRawData ()
         }
-        package "spi" as caSpi {
-            +interface CalypsoCaCertificateSignerSpi <<red>> {
-                +byte[] getIssuerPublicKeyReference ()
-                +byte[] generateSignedCertificate (byte[] data, byte[] recoverableData)
-            }
+        +interface "CalypsoCaCertificateV1" as CalypsoCaCertificateV1 extends CalypsoCaCertificate {
+            +<color:grey>byte getType ()
+            +<color:grey>byte getStructureVersion ()
+
+            +<color:grey>byte[] getIssuerPublicKeyReference ()
+
+            +<color:grey>byte[] getCaPublicKeyReference ()
+            +<color:grey>byte[] getCaPublicKey ()
+
+            +<color:grey>byte[] getStartDate ()
+            +<color:grey>byte[] getEndDate ()
+
+            +<color:grey>int getCaTargetAidSize ()
+            +<color:grey>byte[] getCaTargetAidValue ()
+
+            +<color:grey>byte getCaRights ()
+            +<color:grey>byte getCaScope ()
+            +<color:grey>byte getCaOperatingMode ()
+
+            +<color:grey>byte[] getSignature ()
         }
     }
     package "card" as card {
@@ -94,55 +125,73 @@ package "calypso.certificate" as api {
             +CalypsoCardCertificateV1Builder withCardPublicKey (byte[] cardPublicKey)
             +CalypsoCardCertificateV1Builder withStartDate (int year, int month, int day)
             +CalypsoCardCertificateV1Builder withEndDate (int year, int month, int day)
-            +CalypsoCardCertificateV1Builder withAid (byte[] aid)
+            +CalypsoCardCertificateV1Builder withCardAid (byte[] aid)
             +CalypsoCardCertificateV1Builder withCardSerialNumber (byte[] serialNumber)
             +CalypsoCardCertificateV1Builder withCardStartupInfo (byte[] startupInfo)
             +CalypsoCardCertificateV1Builder withIndex (int index)
 
-            +CalypsoCardCertificateV1 build (<back:yellow>RSAPrivateKey</back> issuerPrivateKey, byte[] issuerPublicKeyReference)
-            +CalypsoCardCertificateV1 build (CalypsoCardCertificateSignerSpi cardCertificateSigner)
+            +CalypsoCardCertificateV1 build ()
         }
-        +interface "<<<back:pink>CardCertificate</back>>>\nCalypsoCardCertificateV1" as CalypsoCardCertificateV1 {
+        +interface "<<<back:pink>CardCertificate</back>>>\nCalypsoCardCertificate" as CalypsoCardCertificate {
             +byte[] getRawData ()
         }
-        package "spi" as cardSpi {
-            +interface CalypsoCardCertificateSignerSpi <<red>> {
-                +byte[] getIssuerPublicKeyReference ()
-                +byte[] generateSignedCertificate (byte[] data, byte[] recoverableData)
-            }
+        +interface "CalypsoCardCertificateV1" as CalypsoCardCertificateV1 extends CalypsoCardCertificate {
+            +<color:grey>byte getType ()
+            +<color:grey>byte getStructureVersion ()
+
+            +<color:grey>byte[] getIssuerPublicKeyReference ()
+
+            +<color:grey>byte[] getCardPublicKey ()
+
+            +<color:grey>byte[] getStartDate ()
+            +<color:grey>byte[] getEndDate ()
+
+            +<color:grey>int getCardAidSize ()
+            +<color:grey>byte[] getCardAidValue ()
+            +<color:grey>byte[] getCardSerialNumber ()
+            +<color:grey>byte[] getCardStartupInfo ()
+
+            +<color:grey>int getIndex ()
+
+            +<color:grey>byte[] getSignature ()
         }
     }
     +class "<<RuntimeException>>\n**final** CertificateSigningException" as CertificateSigningException <<green>> {
         +CertificateSigningException (String message)
         +CertificateSigningException (String message, Throwable cause)
     }
+    +class "<<RuntimeException>>\n**final** CertificateConsistencyException" as CertificateConsistencyException <<green>> {
+        +CertificateConsistencyException (String message)
+        +CertificateConsistencyException (String message, Throwable cause)
+    }
 }
 
 ' Associations
 
-CalypsoCertificateApiFactory ..> CalypsoCaCertificateV1Builder #C_LINK : create >
-CalypsoCertificateApiFactory ..> CalypsoCardCertificateV1Builder #C_LINK : create >
+CalypsoCertificateApiFactory ..> CalypsoCertificateStore #C_LINK : provide >
+CalypsoCertificateApiFactory ...> CalypsoCaCertificateV1Builder #C_LINK : create >
+CalypsoCertificateApiFactory ...> CalypsoCardCertificateV1Builder #C_LINK : create >
+CalypsoCertificateApiFactory .right.> CalypsoCertificateSignerSpi #C_USE : use >
 
-CalypsoCaCertificateV1Builder ..> CalypsoCaCertificateSignerSpi #C_USE : use >
+CalypsoCertificateStore ..> CalypsoCaCertificate #C_USE : use >
+
 CalypsoCaCertificateV1Builder ..> CalypsoCaCertificateV1 #C_LINK : create >
-CalypsoCaCertificateV1Builder ...> CertificateSigningException #C_THROW : throw >
 
-CalypsoCardCertificateV1Builder ..> CalypsoCardCertificateSignerSpi #C_USE : use >
 CalypsoCardCertificateV1Builder ..> CalypsoCardCertificateV1 #C_LINK : create >
-CalypsoCardCertificateV1Builder ...> CertificateSigningException #C_THROW : throw >
 
 
 ' == LAYOUT ==
 
+CalypsoCaCertificateV1 -[hidden]- CertificateConsistencyException
+CertificateConsistencyException -[hidden]right- CertificateSigningException
 'CalypsoCertificateApiFactory -[hidden]- CalypsoCaCertificateV1Builder
 'CalypsoCertificateApiFactory -[hidden]- CalypsoCardCertificateV1Builder
 
 ' == STYLE ==
 
 package api #C_GREY1 {}
+package api.spi #C_GREY2 {}
 package api.ca #C_GREY2 {}
-package api.ca.caSpi #C_GREY3 {}
 package api.card #C_GREY2 {}
-package api.card.cardSpi #C_GREY3 {}
 
 @enduml
