@@ -1,6 +1,6 @@
 @startuml
 title
-    Terminal Calypso Certificate API 0.1.+ (2024-02-26)
+    Terminal Calypso Certificate API 0.1.+ (2024-03-15)
 end title
 
 ' == THEME ==
@@ -70,10 +70,10 @@ package "calypso.certificate" as api {
         +CalypsoCardCertificateV1Generator createCalypsoCardCertificateV1Generator (byte[] issuerPublicKeyReference, CalypsoCertificateSigner cardCertificateSigner)
     }
     +interface CalypsoCertificateStore <<blue>> {
-        +CalypsoCertificateStore addPcaPublicKey (byte[] pcaPublicKeyReference, <back:yellow>RSAPublicKey</back> pcaPublicKey)
-        +CalypsoCertificateStore addPcaPublicKey (byte[] pcaPublicKeyReference, byte[] pcaPublicKeyModulus)
+        +void addPcaPublicKey (byte[] pcaPublicKeyReference, <back:yellow>RSAPublicKey</back> pcaPublicKey)
+        +void addPcaPublicKey (byte[] pcaPublicKeyReference, byte[] pcaPublicKeyModulus)
 
-        +CalypsoCertificateStore addCalypsoCaCertificate (byte[] caCertificate)
+        +byte[] addCalypsoCaCertificate (byte[] caCertificate)
     }
     package "spi" as spi {
         +interface CalypsoCertificateSigner <<red>> {
