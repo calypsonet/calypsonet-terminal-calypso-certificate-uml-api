@@ -1,6 +1,6 @@
 @startuml
 title
-    Terminal Calypso Certificate API 0.1.+ (2024-03-15)
+    Terminal Calypso Certificate API 0.1.+ (2024-03-22)
 end title
 
 ' == THEME ==
@@ -77,7 +77,23 @@ package "calypso.certificate" as api {
     }
     package "spi" as spi {
         +interface CalypsoCertificateSigner <<red>> {
-            +byte[] generateSignedCertificate (byte[] data, byte[] recoverableData)
+            +byte[] generateSignedCertificate(CertificateGenerationData certificateGenerationData)
+        }
+        +interface CertificateGenerationData <<red>> {
+          +byte getType();
+          +byte getVersion();
+          +int getIndex();
+          +byte[] getPublicKeyReference();
+          +byte[] getIssuerPublicKeyReference();
+          +long getStartDate();
+          +long getEndDate();
+          +byte[] getAid();
+          +byte getScope();
+          +byte getRights();
+          +byte getOperatingMode();
+          +byte[] getCardSerialNumber();
+          +byte[] getCardStartupInfo();
+          +byte[] getPublicKey();
         }
     }
     +interface CalypsoCaCertificateV1Generator <<blue>> {
@@ -117,6 +133,7 @@ CalypsoCertificateApiFactory ..> CalypsoCertificateStore #C_LINK : provide >
 CalypsoCertificateApiFactory ...> CalypsoCaCertificateV1Generator #C_LINK : create >
 CalypsoCertificateApiFactory ...> CalypsoCardCertificateV1Generator #C_LINK : create >
 CalypsoCertificateApiFactory ..> CalypsoCertificateSigner #C_USE : use >
+CalypsoCertificateSigner ..> CertificateGenerationData #C_USE : use >
 
 CalypsoCaCertificateV1Generator ..> CertificateSigningException #C_THROW : throw >
 CalypsoCaCertificateV1Generator ..> CertificateConsistencyException #C_THROW : throw >
